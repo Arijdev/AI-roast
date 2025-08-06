@@ -56,8 +56,6 @@ export function verifyToken(token: string): { userId: string } | null {
     if (typeof decoded === 'object' && decoded !== null && 'userId' in decoded) {
       return decoded as { userId: string }
     }
-    console.log("Invalid token structure:", decoded)
-    // If the structure is not as expected, return null
     return null
   } catch {
     return null

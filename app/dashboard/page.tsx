@@ -13,19 +13,54 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview")
   const router = useRouter()
 
+  // useEffect(() => {
+  //   const currentUser = localStorage.getItem("currentUser")
+  //   if (!currentUser) {
+  //     router.push("/login")
+  //     return
+  //   }
+  //   setUser(JSON.parse(currentUser))
+  // }, [router])
+
   useEffect(() => {
-    const currentUser = localStorage.getItem("currentUser")
-    if (!currentUser) {
-      router.push("/login")
-      return
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include', // important to send cookies
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          setUser(result.user)
+        } else {
+          router.push("/login")
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error)
+        router.push("/login")
+      } finally {
+        // Cleanup or additional logic if needed
+      }
     }
-    setUser(JSON.parse(currentUser))
+
+    checkAuth()
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser")
-    router.push("/")
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include", // include cookie to clear it
+      })
+
+      router.push("/")
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
   }
+
 
   const stats = [
     { label: "Total Roasts", value: "23", icon: Flame, change: "+5 this week" },
@@ -151,9 +186,8 @@ export default function DashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 ${
-                  activeTab === tab.id ? "bg-white/20 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 ${activeTab === tab.id ? "bg-white/20 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 <span className="hidden sm:inline">{tab.label}</span>
@@ -270,9 +304,8 @@ export default function DashboardPage() {
                 {achievements.map((achievement, index) => (
                   <div
                     key={index}
-                    className={`p-4 rounded-lg border transition-all duration-300 ${
-                      achievement.earned ? "bg-yellow-500/10 border-yellow-500/30" : "bg-white/5 border-white/10"
-                    }`}
+                    className={`p-4 rounded-lg border transition-all duration-300 ${achievement.earned ? "bg-yellow-500/10 border-yellow-500/30" : "bg-white/5 border-white/10"
+                      }`}
                   >
                     <div className="flex items-start space-x-4">
                       <div className={`p-2 rounded-lg ${achievement.earned ? "bg-yellow-500/20" : "bg-gray-700/50"}`}>
